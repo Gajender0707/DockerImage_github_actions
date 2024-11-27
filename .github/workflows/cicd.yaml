@@ -1,0 +1,41 @@
+# Giving the name to the Actions...
+name: Creating the Docker Image
+
+
+#define the Events when the automation will trigger....
+on:
+  push:
+    branches:
+      - main
+  
+  pull_request:
+    branches:
+      - main
+
+
+#  Define the Jobs or the Works ....
+jobs:
+  build-and-run:
+    runs-on: ubuntu-latest
+
+    steps:
+        # Step1: Checkout the code using predefined githubaction checkout@v3 function....
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+
+        #Step2: Login in the Dockerhub using the secrets username and passwords and save that in github..
+      - name: Login to Dockerhub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+        
+      - name: Create the DockerImage
+        run: docker build -t my-python-app .
+        
+      - name: run the Container
+        run: docker run -d -p 80:80 --name my-python-app-container my-python-app
+
+      - name: verify the conainer
+        run: docker ps
