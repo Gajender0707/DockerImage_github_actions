@@ -15,27 +15,57 @@ on:
 
 #  Define the Jobs or the Works ....
 jobs:
-  build-and-run:
+  dockerbuild:
     runs-on: ubuntu-latest
 
     steps:
-        # Step1: Checkout the code using predefined githubaction checkout@v3 function....
-      - name: Checkout code
+      - name: checkout the code
         uses: actions/checkout@v3
 
+      - name: build the docker image
+        run: docker build --file Dockerfile --tag workflow-test
 
-        #Step2: Login in the Dockerhub using the secrets username and passwords and save that in github..
-      - name: Login to Dockerhub
-        uses: docker/login-action@v2
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout the code
+        uses: actions/checkout@v3
+        
+      - name: setup the python
+        uses: actions/setup-python@v4
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-        
-      - name: Create the DockerImage
-        run: docker build -t my-python-app .
-        
-      - name: run the Container
-        run: docker run -d -p 80:80 --name my-python-app-container my-python-app
+          python-version: 3.9
 
-      - name: verify the conainer
-        run: docker ps
+      - name: install the dependency
+        run: pip install -r requirements.txt
+
+
+      - name: test the app
+        run: pytest tests/
+
+
+
+#   build-and-run:
+#     runs-on: ubuntu-latest
+
+#     steps:
+#         # Step1: Checkout the code using predefined githubaction checkout@v3 function....
+#       - name: Checkout code
+#         uses: actions/checkout@v3
+
+
+#         #Step2: Login in the Dockerhub using the secrets username and passwords and save that in github..
+#       - name: Login to Dockerhub
+#         uses: docker/login-action@v2
+#         with:
+#           username: ${{ secrets.DOCKER_USERNAME }}
+#           password: ${{ secrets.DOCKER_PASSWORD }}
+        
+#       - name: Create the DockerImage
+#         run: docker build -t my-python-app .
+        
+#       - name: run the Container
+#         run: docker run -d -p 80:80 --name my-python-app-container my-python-app
+
+#       - name: verify the conainer
+#         run: docker ps
