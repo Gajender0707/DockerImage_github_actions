@@ -46,27 +46,32 @@ jobs:
 
 
 
-#   build-and-run:
-#     runs-on: ubuntu-latest
+  publish:
+    needs: test
+    runs-on: ubuntu-latest
 
-#     steps:
-#         # Step1: Checkout the code using predefined githubaction checkout@v3 function....
-#       - name: Checkout code
-#         uses: actions/checkout@v3
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: setup the docker buildx
+        uses: docker/setup-buildx-action@v2
 
 
-#         #Step2: Login in the Dockerhub using the secrets username and passwords and save that in github..
-#       - name: Login to Dockerhub
-#         uses: docker/login-action@v2
-#         with:
-#           username: ${{ secrets.DOCKER_USERNAME }}
-#           password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Login to Dockerhub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
         
-#       - name: Create the DockerImage
-#         run: docker build -t my-python-app .
-        
-#       - name: run the Container
-#         run: docker run -d -p 80:80 --name my-python-app-container my-python-app
 
-#       - name: verify the conainer
-#         run: docker ps
+      - name: docker build and push image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./Dockerfile
+          push: True
+          tags: ${{ secrets.DOCKER_USERNAME }}/flask-test-app:latest
+        
+      - name: Image digest
+        run: echo ${{ steps.build-push.outputs.digest }}
